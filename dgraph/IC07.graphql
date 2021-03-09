@@ -1,0 +1,27 @@
+query all($ID: string){
+	pid as var(func: eq(fqid, $ID))
+
+    var(func: uid(pid))@cascade {
+		messages as ~hasCreator {
+			personLikes as ~likes
+		}
+		friends1 as knows{
+			friend1 as math(1)
+		}
+		friends2 as ~knows{
+			friend2 as math(1)
+		}
+	}
+
+	q(func: uid(friends1, friends2, personLikes), orderdesc: id, first:20) @filter(uid_in(likes, uid(messages) )){
+		isFriend2: val(friend2)
+		isFriend1: val(friend1)
+		id
+		firstName
+		lastName
+		likes @facets(orderdesc: creationDate) @filter(uid(messages)) (first:1){
+			id
+			creationDate
+		}
+	}
+}

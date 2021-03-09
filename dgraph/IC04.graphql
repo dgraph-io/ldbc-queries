@@ -1,0 +1,39 @@
+query all($ID: string, $startDate: string, $endDate: string) {
+    # Find deg 1 friends.
+	var(func: eq(fqid, $ID)) {
+		knows {
+		    # p1 is all the posts by deg 1 friends below $endDate.
+			p1 as ~hasCreator @filter(lt(creationDate, $endDate) AND type(post))
+		}
+		~knows {
+		    # p1 is all the posts by deg 1 friends below $endDate.
+			p2 as ~hasCreator @filter(lt(creationDate, $endDate)AND type(post))
+		}
+	}
+
+	# Find old tags from degree 1 friends' posts.
+	var(func: uid(p1,p2)) @filter(le(creationDate, $startDate)) {
+		# set of tag uids
+		oldTags as hasTag
+	}
+
+	pbw as var(func: uid(p1,p2)) @filter(gt(creationDate, $startDate))
+	var(func: uid(pbw)) {
+          	# These tags are brand new. They were NEVER used before $startDate.
+		newTags as hasTag @filter(NOT uid(oldTags))
+	}
+
+	var(func: uid(newTags)) {
+	    # Find count of posts for these tags.
+		# But, only consider posts between this time-range.
+		# pc contains tag uid -> count of posts.
+		pc as count(~hasTag) @filter(uid(pbw))
+	}
+
+    # Sort them by the number of posts attached to these tags.
+	# These posts are global (not limited to posts by friends).
+	q(func: uid(newTags), orderdesc: val(pc), first: 10) {
+		name
+		val(pc)
+	}
+}

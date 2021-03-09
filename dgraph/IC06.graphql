@@ -1,0 +1,34 @@
+query all($ID: string, $tagName: string){
+	pid as var(func: eq(fqid, $ID))
+	var(func: uid(pid)){
+		f11 as knows{
+			f12 as knows @filter(NOT uid(pid))
+			f13 as ~knows @filter(NOT uid(pid))
+		}
+		f21 as ~knows{
+			f22 as knows @filter(NOT uid(pid))
+			f23 as ~knows @filter(NOT uid(pid))
+		}
+	}
+	# tag is the tag that's passed in.
+	tag as var(func: eq(name, $tagName)) {
+		# posts are all the posts which have this tag.
+		posts as ~hasTag @filter(type(post))
+	}
+	# Collect posts by friends and the tags of those posts.
+	# Restrict posts to which have the tag
+	var(func: uid(f11 ,f12, f13, f21, f22, f23)){
+		tc as math(1) # variable propagation trick to count all paths from post -> tag.
+		~hasCreator @filter(uid(posts)) {
+			otherTag as hasTag {
+			    # tagCount tracks tag -> post count, by using variable propagation.
+				tagCount as math(tc)
+			}
+		}
+	}
+	tags as var(func: uid(otherTag)) @filter(NOT uid(tag))
+	q(func: uid(tags), orderdesc: val(tagCount), first:10){
+		name
+		postCount: val(tagCount)
+	}
+}

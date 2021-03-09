@@ -1,0 +1,32 @@
+query all($ID: string, $name: string, $workFrom: string){
+	pid as var(func: eq(fqid, $ID))
+
+	var(func: uid(pid)){
+		f1 as knows @filter(NOT uid(pid)){
+			f11 as knows @filter(NOT uid(pid))
+			f12 as ~knows @filter(NOT uid(pid))
+		}
+		f2 as ~knows @filter(NOT uid(pid)){
+			f21 as knows @filter(NOT uid(pid))
+			f22 as ~knows @filter(NOT uid(pid))
+		}
+	}
+
+	friendsAndFoF as var(func:uid(f1, f2, f11, f12, f21, f22))
+
+	country as var(func: eq(name, $name))
+
+	organisation as var(func: type(organisation)) @filter(uid_in(isLocatedIn, uid(country)))
+
+	relevantFriends as var(func: uid(friendsAndFoF))@filter(uid_in(workAt, uid(organisation)))
+
+	q(func: uid(relevantFriends), orderasc: id) @cascade{
+			id
+			firstName
+			lastName
+			workAt @filter( uid(organisation)) @facets(workFrom) @facets(le(workFrom, $workFrom)){
+				id
+				name
+			}
+	}
+}

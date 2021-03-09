@@ -1,0 +1,20 @@
+query all($ID: string, $date: string){
+	var(func: eq(fqid, $ID)){
+		knows{
+			msgs1 as ~hasCreator @filter(le(creationDate, $date))
+		}
+		~knows{
+			msgs2 as ~hasCreator @filter(le(creationDate, $date))
+		}
+	}
+	q(func: uid(msgs1,msgs2), orderdesc: creationDate, orderasc: fqid, first:20){
+		id
+		content
+		creationDate
+		hasCreator{
+			id
+			firstName
+			lastName
+		}
+	}
+}

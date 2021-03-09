@@ -1,0 +1,45 @@
+query all($ID: string){
+	pid as var(func: eq(fqid, $ID))
+
+	var(func: uid(pid)){
+		exf1 as knows{
+			f1 as knows
+			f2 as ~knows
+		}
+		exf2 as ~knows{
+			f3 as knows
+			f4 as ~knows
+		}
+	}
+
+	friendsOfInterest as var(func:uid(f1,f2,f3,f4)) @filter(NOT uid(exf1, exf2, pid))
+
+	var(func: uid(pid)){
+		tagsOfInterest as hasInterest (orderasc: fqid)
+	}
+
+	var(func: uid(friendsOfInterest)){
+		common as count(~hasCreator) @filter(uid_in(hasTag, uid(tagsOfInterest)) AND type(post))
+	}
+
+	var(func: uid(friendsOfInterest)){
+		uncommon as count(~hasCreator) @filter(NOT uid_in(hasTag, uid(tagsOfInterest)) AND type(post))
+	}
+
+	var(func: uid(friendsOfInterest) ){
+		interest as math(common - uncommon )
+	}
+
+	q(func: uid(friendsOfInterest), orderdesc: val(interest), first:10){
+		fqid
+		firstName
+		lastName
+		gender
+		isLocatedIn{
+			name
+		}
+		co: val(common)
+		un: val(uncommon)
+		interest: val(interest)
+	}
+}

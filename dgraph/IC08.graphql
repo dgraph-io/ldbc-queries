@@ -1,0 +1,17 @@
+query all($ID: string){
+	var(func: eq(fqid, $ID))@cascade{
+		~hasCreator{
+			replies as ~replyOf
+		}
+	}
+	q(func: uid(replies), orderdesc: creationDate, orderasc: id, first:20 ){
+		id
+		content
+		creationDate
+		hasCreator{
+			id
+			firstName
+			lastName
+		}
+	}
+}

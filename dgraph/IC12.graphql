@@ -1,0 +1,34 @@
+query all($ID: string, $tagClass: string){
+	mainTagClass as var(func: eq(name, $tagClass)) @recurse{
+		subClasses as ~isSubclassOf
+	}
+
+	var(func: uid(mainTagClass, subClasses) ){
+		tags as ~hasType
+	}
+
+	var(func: eq(fqid, $ID)){
+		friends1 as knows
+		friends2 as ~knows
+	}
+
+	friends as var(func: uid(friends1, friends2), first:5000)
+
+	relevantPosts as var(func: type(post)) @filter(uid_in(hasTag, uid(tags)))
+
+	var(func: uid(relevantPosts)){
+		~replyOf @filter(uid_in(hasCreator, uid(friends))){
+			relevantFriends as hasCreator
+		}
+	}
+
+	var(func: uid(relevantFriends)){
+		replyCount as count(~hasCreator) @filter(uid_in(replyOf, uid(relevantPosts) ))
+	}
+	q(func: uid(relevantFriends), orderdesc: val(replyCount), first:20){
+		id
+		firstName
+		lastName
+		replyCount : val(replyCount)
+	}
+}

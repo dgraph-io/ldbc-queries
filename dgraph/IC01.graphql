@@ -1,0 +1,87 @@
+query all($ID: string, $name: string){
+	pid as var(func: eq(fqid, $ID))
+	nid as var(func: eq(firstName, $name))
+	# fi --> friend at ith level
+    var(func: uid(pid)){
+		f11 as knows{
+			dist11 as math(1)
+			f21 as knows @filter(NOT uid(pid)){
+				dist21 as math(2)
+				f31 as knows @filter(NOT uid(pid)){
+					dist31 as math(3)
+				}
+				f32 as ~knows @filter(NOT uid(pid)){
+					dist32 as math(3)
+				}
+			}
+			f22 as ~knows @filter(NOT uid(pid)){
+				dist22 as math(2)
+				f33 as knows @filter(NOT uid(pid)){
+					dist33 as math(3)
+				}
+				f34 as ~knows @filter(NOT uid(pid)){
+					dist34 as math(3)
+				}
+			}
+		}
+		f12 as ~knows{
+			dist12 as math(1)
+			f23 as knows @filter(NOT uid(pid)){
+				dist23 as math(2)
+				f35 as knows @filter(NOT uid(pid)){
+					dist35 as math(3)
+				}
+				f36 as ~knows @filter(NOT uid(pid)){
+					dist36 as math(3)
+				}
+			}
+			f24 as ~knows @filter(NOT uid(pid)){
+				dist24 as math(2)
+				f37 as knows @filter(NOT uid(pid)){
+					dist37 as math(3)
+				}
+				f38 as ~knows @filter(NOT uid(pid)){
+					dist38 as math(3)
+				}
+			}
+		}
+	}
+	#ppl as var(func: uid(nid)) @filter(uid(f1, f2, f3))
+	ppl as var(func: uid(f11, f12, f21, f22, f23, f24, f31, f32, f33, f34, f35, f36, f37, f38)) @filter(uid(nid))
+
+	q(func: uid(ppl), orderasc: lastName, orderasc: id, first: 20) {
+		# distance: val(score)
+		distance11: val(dist11)
+		distance12: val(dist12)
+		distance21: val(dist21)
+		distance22: val(dist22)
+		distance23: val(dist23)
+		distance24: val(dist24)
+		distance31: val(dist31)
+		distance32: val(dist32)
+		distance33: val(dist33)
+		distance34: val(dist34)
+		distance35: val(dist35)
+		distance36: val(dist36)
+		distance37: val(dist37)
+		distance38: val(dist38)
+		id
+		lastName
+		birthday
+		gender
+		browserUsed
+		locationIP
+		email
+		language
+		creationDate
+		isLocatedIn{
+			name
+		}
+		studyAt{
+			name
+			isLocatedIn{
+				name
+			}
+		}
+	}
+}

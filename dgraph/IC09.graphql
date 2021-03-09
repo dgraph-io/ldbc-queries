@@ -1,0 +1,27 @@
+query all($ID: string, $maxDate: string){
+	pid as var(func: eq(fqid, $ID))
+	var(func: uid(pid)){
+		f11 as knows{
+			f21 as knows @filter(NOT uid(pid))
+			f22 as ~knows @filter(NOT uid(pid))
+		}
+		f12 as ~knows{
+			f23 as knows @filter(NOT uid(pid))
+			f24 as ~knows @filter(NOT uid(pid))
+		}
+	}
+	var(func: uid(f11, f12, f21, f22, f23, f24) ){
+		msgs as ~hasCreator @filter(le(creationDate, $maxDate ))
+	}
+
+	q1(func: uid(msgs), orderdesc: creationDate, orderasc: id, first:20){
+		id
+		content
+		creationDate
+		hasCreator{
+			id
+			firstName
+			lastName
+		}
+	}
+}
